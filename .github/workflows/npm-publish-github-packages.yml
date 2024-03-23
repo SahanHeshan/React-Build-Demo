@@ -1,38 +1,35 @@
-name: GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
-      - main  # Set a branch name to trigger deployment
+      - main  # Triggers the deployment on push events to the main branch.
   pull_request:
 
 jobs:
   deploy:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest  # Specifies the runner environment.
     permissions:
       contents: write
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true  # Fetch Hugo themes (true OR recursive)
-          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+      - uses: actions/checkout@v3  # Checks out the repository code.
 
-      - name: Setup Hugo
-        uses: peaceiris/actions-hugo@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          hugo-version: '0.110.0'
+          node-version: '16'  # Specify the Node.js version.
+
+      - name: Install Dependencies
+        run: npm install  # Installs the project dependencies.
 
       - name: Build
-        run: hugo --minify
+        run: npm run build  # Builds your Vite React project. Make sure your 'build' script in package.json is correctly set up.
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
-        # If you're changing the branch from main,
-        # also change the `main` in `refs/heads/main`
-        # below accordingly.
         if: github.ref == 'refs/heads/main'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          publish_dir: ./dist  # The output directory after the build. Adjust if your build output directory is different.
